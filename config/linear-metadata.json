@@ -1,0 +1,13 @@
+{
+  "branch_prefix": "bdr",
+  "default_team": "Engineering",
+  "parent_tickets": [
+    {
+      "id": "8285d450-b86c-41b0-a55d-49c50e630b6a",
+      "identifier": "ENG-198",
+      "title": "Outstanding quality issues in the total 'ES universe'",
+      "added": "2025-12-03T12:00:00Z"
+    }
+  ],
+  "projects": []
+}

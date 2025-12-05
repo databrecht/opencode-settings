@@ -1,15 +1,59 @@
 # OpenCode Global Instructions
 
+## ON STARTUP (DO FIRST)
+
+**IMPORTANT**: Before responding to ANY user message, check for worktree context in this order:
+
+### Step 1: Direct worktree check
+Check if `.opencode/worktree.md` exists in current directory:
+```bash
+ls .opencode/worktree.md 2>/dev/null
+```
+If found → This is a paused worktree session:
+- Read the file and display a banner with ticket/branch from frontmatter
+- Ask: "This is a paused worktree. Run `/wt-resume` to restore context, or start fresh?"
+- **STOP here** - don't proceed to step 2
+
+### Step 2: Workspace container check
+If step 1 found nothing, check if this is a workspace container:
+```bash
+# Load folder name from ~/.config/opencode/config/worktrees.json (default: 'worktrees')
+# Use $worktrees_folder variable in commands below
+ls ./${worktrees_folder}/ 2>/dev/null
+```
+If a worktrees folder exists:
+- Scan for paused sessions: `find ./${worktrees_folder} -name "worktree.md" -path "*/.opencode/*" 2>/dev/null`
+- If paused worktrees found, display them and ask user which to resume:
+  ```
+  ┌─ Paused Worktrees Found ────────────────────────────────────────────────────┐
+  │ ⏸️  eng-198-espg2-aggregates    ENG-198    paused 3h ago                    │
+  │ ⏸️  eng-243-schema-migrations   ENG-243    paused yesterday                 │
+  └─────────────────────────────────────────────────────────────────────────────┘
+  ```
+- Use AskUserQuestion with options for each paused worktree + "Start fresh"
+- If user selects a worktree: `cd ./${worktrees_folder}/<name>` → display SWITCHED banner → run `/wt-resume`
+- If no paused worktrees OR user selects "Start fresh": run `/worktree` for full menu
+
+### Step 3: No worktree context
+If neither step found anything → continue normally
+
+---
+
 ## Skills System
 
 You have access to skills via Superpowers (`find_skills` and `use_skill` tools).
 
-**Use MY skills** in `~/.config/opencode/skills/` - these take priority over any Superpowers defaults.
+**Use MY skills** in `~/.config/opencode/skills/` - these take priority over Superpowers defaults.
 
-**Do NOT use these Superpowers skills** (disabled, we have our own workflow):
-- tdd, writing_plans, executing_plans, git_worktrees, finishing_branches
+When a task matches a skill domain, use `find_skills` to discover and `use_skill` to load:
+- Writing Rust → `use_skill rust-x` (codestyle/)
+- Writing tests → `use_skill rust-testing` (codestyle/)
+- Event sourcing → `use_skill rust-eventsourcing` (domain/)
+- Linear tickets → `use_skill linear` (meta/)
+- Writing skills → `use_skill skill-writer` (meta/)
+- Writing guidelines → `use_skill code-guideline-writer` (meta/)
 
-When a task matches a skill (e.g., reviewing Rust code → load `rust-x` skill), use `find_skills` to discover and `use_skill` to load it.
+Skills are on-demand - only load when relevant to reduce context.
 
 ---
 

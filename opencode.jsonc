@@ -1,23 +1,13 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "theme": "opencode",
+  "theme": "gruvbox",
   "model": "anthropic/claude-sonnet-4-5",
   "small_model": "anthropic/claude-haiku-4-5",
   "autoupdate": true,
 
-  // Superpowers plugin for skills infrastructure
-  "plugin": ["superpowers"],
-
   "tools": {
     // Denied
     "bash(git push:*)": false,
-
-    // Disable conflicting Superpowers skills (we have our own workflow)
-    "skills_tdd": false,
-    "skills_writing_plans": false,
-    "skills_executing_plans": false,
-    "skills_git_worktrees": false,
-    "skills_finishing_branches": false,
 
     // Core tools - all enabled
     "bash": true,
