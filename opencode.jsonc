@@ -1,0 +1,24 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "theme": "opencode",
+  "model": "anthropic/claude-sonnet-4-5",
+  "small_model": "anthropic/claude-haiku-4-5",
+  "autoupdate": true,
+  "tools": {
+    // Core tools - all enabled
+    "bash": true,
+    "edit": true,
+    "write": true,
+    "read": true,
+    "grep": true,
+    "glob": true,
+    "list": true,
+    "todowrite": true,
+    "todoread": true,
+    "webfetch": true,
+    // MCP servers
+    "mcp__linear-server__*": true,
+    "mcp__github__*": true,
+    "mcp__rust-analyzer__*": true
+  }
+}

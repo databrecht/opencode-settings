@@ -1,0 +1,7 @@
+# Dependencies (MCP servers installed via bun)
+node_modules/
+package.json
+bun.lock
+
+# Local Claude Code state (machine-specific permissions)
+.claude/
