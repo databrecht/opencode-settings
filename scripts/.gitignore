@@ -1,0 +1,7 @@
+# Test output
+*.test.log
+test-output/
+
+# Temporary files
+*.tmp
+.DS_Store
