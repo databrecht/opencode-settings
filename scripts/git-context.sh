@@ -50,8 +50,16 @@ main() {
     
     # Get git status information
     local is_clean="false"
-    if git diff-index --quiet HEAD -- 2>/dev/null; then
-        is_clean="true"
+    # Check if HEAD exists (repo may have no commits yet)
+    if git rev-parse --verify HEAD >/dev/null 2>&1; then
+        if git diff-index --quiet HEAD -- 2>/dev/null; then
+            is_clean="true"
+        fi
+    else
+        # No commits yet - consider clean if no untracked files
+        if [[ $(git ls-files --others --exclude-standard 2>/dev/null | wc -l | tr -d ' ') -eq 0 ]]; then
+            is_clean="true"
+        fi
     fi
     
     # Count changes
@@ -68,7 +76,15 @@ main() {
     
     # Get recent commits (last 5)
     local commits
-    commits=$(git log -5 --pretty=format:'{"hash":"%h","message":"%s","author":"%an","date":"%ai"}' 2>/dev/null | jq -s '.' || echo '[]')
+    # Use null-separated format to safely handle quotes in commit messages
+    if git rev-parse --verify HEAD >/dev/null 2>&1; then
+        commits=$(git log -5 --format='%h%x00%s%x00%an%x00%ai' 2>/dev/null | while IFS= read -r -d '' hash && IFS= read -r -d '' message && IFS= read -r -d '' author && IFS= read -r line; do
+            jq -n --arg hash "$hash" --arg message "$message" --arg author "$author" --arg date "$line" \
+                '{hash: $hash, message: $message, author: $author, date: $date}'
+        done | jq -s '.')
+    else
+        commits='[]'
+    fi
     
     # Check if branch tracks remote
     local remote_branch tracking
