@@ -5,6 +5,8 @@
   "small_model": "anthropic/claude-haiku-4-5",
   "autoupdate": true,
   "tools": {
+    // Denied
+    "bash(git push:*)": false,
     // Core tools - all enabled
     "bash": true,
     "edit": true,
@@ -18,7 +20,6 @@
     "webfetch": true,
     // MCP servers
     "mcp__linear-server__*": true,
-    "mcp__github__*": true,
     "mcp__rust-analyzer__*": true
   }
 }
