@@ -1,5 +1,1 @@
-{
-  "repo_folder": "repo",
-  "worktrees_folder": "worktrees",
-  "archive_folder": "worktrees-archive"
-}
+{"repo_folder":"repo","worktrees_folder":"worktrees","archive_folder":"worktrees-archive"}

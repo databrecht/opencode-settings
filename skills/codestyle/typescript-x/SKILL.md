@@ -1,18 +1,18 @@
 ---
 name: typescript-x
-description: TypeScript code style guidelines for all TypeScript projects. Applied when writing .ts files, reviewing TypeScript code, or working with ESM modules.
+description: Base TypeScript patterns for all projects. ESM imports, type safety, code organization, naming conventions. Use when writing .ts files or reviewing TypeScript code.
 ---
 
 # TypeScript Code Style Guidelines
 
-Core TypeScript patterns for secure, maintainable, and type-safe code.
+Core TypeScript patterns for maintainable, type-safe code.
 
 ## When Applied
 
 - Writing TypeScript files (\*.ts)
 - Reviewing TypeScript code
 - Working with ESM modules
-- Implementing security-sensitive operations
+- Designing APIs and type hierarchies
 
 ## Rules
 
@@ -48,93 +48,6 @@ import { isOpenCodeProfile } from "./types.js";
 
 // ❌ DON'T
 import { Profile, isOpenCodeProfile } from "./types.js";
-```
-
-### Atomic File Operations
-
-**Use atomic writes for critical data.** Prevents corruption if process dies mid-write.
-
-```typescript
-// ✅ DO
-export function writeJsonSafe<T>(filePath: string, data: T): void {
-  const tempPath = `${filePath}.${process.pid}.tmp`;
-
-  try {
-    const content = JSON.stringify(data, null, 2);
-    JSON.parse(content); // Validate by round-tripping
-
-    fs.writeFileSync(tempPath, content, { mode: 0o600 });
-    fs.renameSync(tempPath, filePath); // Atomic on POSIX
-    fs.chmodSync(filePath, 0o600);
-  } catch (err) {
-    try {
-      if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
-    } catch {}
-    throw err;
-  }
-}
-
-// ❌ DON'T
-export function writeJson(filePath: string, data: any): void {
-  fs.writeFileSync(filePath, JSON.stringify(data)); // Not atomic, not validated
-}
-```
-
-### Security
-
-**Set secure file permissions for sensitive data.** Use 0600 for files, 0700 for directories.
-
-```typescript
-// ✅ DO
-fs.writeFileSync(path, content, { mode: 0o600 }); // rw-------
-fs.chmodSync(path, 0o600);
-
-export function ensureSecureDir(dirPath: string): void {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true, mode: 0o700 });
-  } else {
-    fs.chmodSync(dirPath, 0o700);
-  }
-}
-
-// ❌ DON'T
-fs.writeFileSync(path, content); // Default permissions (644)
-```
-
-**Validate external input before use.**
-
-```typescript
-// ✅ DO
-export function validateEmail(email: string): boolean {
-  return EMAIL_REGEX.test(email);
-}
-
-if (!validateEmail(input)) {
-  throw new Error(`Invalid email: ${input}`);
-}
-
-// ❌ DON'T
-// Use input directly without validation
-```
-
-**Prevent root execution (with container exception).**
-
-```typescript
-// ✅ DO
-export function checkNotRoot(): void {
-  if (process.getuid?.() === 0 && !isRunningInContainer()) {
-    console.error("Error: Do not run as root");
-    process.exit(1);
-  }
-}
-
-function isRunningInContainer(): boolean {
-  if (fs.existsSync("/.dockerenv")) return true;
-  return !!(process.env.CONTAINER || process.env.container);
-}
-
-// ❌ DON'T
-// Allow root execution without checks
 ```
 
 ### Type Safety
@@ -213,82 +126,6 @@ export function readJsonSafe<T>(filePath: string): T | null {
 // ❌ DON'T
 export function writeJsonSafe(filePath: string, data: any): void {
   // Loses type information
-}
-```
-
-### Error Handling
-
-**Use try-catch with cleanup.**
-
-```typescript
-// ✅ DO
-export function safeOperation(filePath: string): void {
-  const tempPath = `${filePath}.tmp`;
-
-  try {
-    fs.writeFileSync(tempPath, content);
-    fs.renameSync(tempPath, filePath);
-  } catch (err) {
-    try {
-      if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
-    } catch {}
-    throw err;
-  }
-}
-
-// ❌ DON'T
-export function unsafeOperation(filePath: string): void {
-  const tempPath = `${filePath}.tmp`;
-  fs.writeFileSync(tempPath, content);
-  fs.renameSync(tempPath, filePath);
-  // Temp file leaks on error
-}
-```
-
-**Provide graceful fallbacks.**
-
-```typescript
-// ✅ DO
-export function readJsonSafe<T>(filePath: string): T | null {
-  if (!fs.existsSync(filePath)) return null;
-
-  try {
-    return JSON.parse(fs.readFileSync(filePath, "utf8"));
-  } catch (err) {
-    console.error(`Error reading ${filePath}:`, err);
-    return null;
-  }
-}
-
-// ❌ DON'T
-export function readJson<T>(filePath: string): T {
-  return JSON.parse(fs.readFileSync(filePath, "utf8"));
-  // Crashes on missing file or invalid JSON
-}
-```
-
-**Return early for error cases.**
-
-```typescript
-// ✅ DO
-export function process(input: string): Result {
-  if (!input) return null;
-  if (!validate(input)) return null;
-
-  return performOperation(input);
-}
-
-// ❌ DON'T
-export function process(input: string): Result {
-  if (input) {
-    if (validate(input)) {
-      return performOperation(input);
-    } else {
-      return null;
-    }
-  } else {
-    return null;
-  }
 }
 ```
 
@@ -651,28 +488,4 @@ export function checkNotRoot(): void {
 // ❌ DON'T
 // Check if root
 export function checkNotRoot(): void {}
-```
-
-### Testing
-
-**Provide dry-run mode for destructive operations.**
-
-```typescript
-// ✅ DO
-export function launchProfile(profile: Profile, args: string[]): void {
-  if (isDryRun()) {
-    dryRunLog("Would launch", { profile: profile.name, args });
-    return;
-  }
-
-  const child = spawn(binaryPath, args, { stdio: "inherit" });
-  child.on("close", (code) => process.exit(code ?? 0));
-}
-
-// ❌ DON'T
-// No dry-run capability
-export function launchProfile(profile: Profile, args: string[]): void {
-  const child = spawn(binaryPath, args, { stdio: "inherit" });
-  child.on("close", (code) => process.exit(code ?? 0));
-}
 ```
